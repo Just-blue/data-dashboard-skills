@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cycling Segment HUD"
+  short_description: "Render cycling segment telemetry as a transparent 4K60 overlay"
+  default_prompt: "Use $zwift-segment-hud to create a transparent cycling HUD for this activity segment."

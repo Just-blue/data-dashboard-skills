@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+.DS_Store
+.env
+.env.*
+outputs/
+examples/demo/
+private/
+*.fit
+*.gpx
+*.mov
+*.mp4
