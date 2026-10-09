@@ -1,66 +1,76 @@
-# 骑行赛段透明仪表盘
+# 数据仪表盘 Skills 集合
 
-将骑行赛段数据渲染成 **4K60透明MOV**，在剪辑软件中直接叠加到第一人称骑行视频上。项目包括可单独使用的Python脚本和Codex Skill。
+这个仓库用于收集不同类型的数据仪表盘。每个仪表盘独立包含Skill、渲染脚本、视觉素材、数据说明和测试，可以按需安装，也可以直接运行脚本。
 
-[English](README.md) · [数据格式](references/data.md)
+[English](README.md) · [添加新仪表盘](CONTRIBUTING.md)
 
-![虚构路线演示](docs/demo-preview.jpg)
+## 仪表盘目录
 
-上图路线、功率和心率均为程序生成的虚构数据。灰底仅用于预览，导出视频保留透明通道。
+| 仪表盘 | 用途 | 输出 | 文档 |
+| --- | --- | --- | --- |
+| **Zwift风格赛段HUD** | 骑行功率/心率、自定义分段、动态GPS地图及坡度 | 4K60透明MOV、PNG预览 | [使用说明](skills/zwift-segment-hud/README.zh-CN.md) · [Skill](skills/zwift-segment-hud/SKILL.md) |
 
-## 功能
+目前已收录一个可运行的仪表盘。后续新增仪表盘放在`skills/`下的独立目录，目录表只列出已经实现的项目。
 
-- 功率、心率、踏频、速度、距离、爬升、用时及功体比。
-- 自定义分段计时、平均功率和心率，当前段展开、完成段记录。
-- GPS动态地图、完成星标、坡度与高程图、底部功率/心率历史。
-- 分块渲染、断点续渲染、无损拼接和透明通道检查。
+![使用虚构数据的骑行仪表盘](skills/zwift-segment-hud/docs/demo-preview.jpg)
 
-默认输出3840×2160、60fps、qtrle/ARGB透明MOV，无音轨。画面布局按1080p绘制并放大至4K，动效逐帧60fps生成；不宣称原生4K字体绘制。
+上图为骑行仪表盘示例，路线与传感器数据均为虚构，灰色只用于展示透明背景。
 
-界面灵感来自骑行游戏，本项目与Zwift及Strava无隶属或合作关系。公开版使用OFL开源Tektur字体，未包含Zwift专有字体、截图或录像。也可通过配置中的font_path指定自己有权使用的本地字体。
-
-## 安装与运行
-
-需要Python3.10+、FFmpeg及ffprobe。macOS可运行 `brew install ffmpeg`，Ubuntu可运行 `sudo apt-get install ffmpeg`。
+## 按需安装
 
 ```sh
-git clone https://github.com/Just-blue/zwift-segment-hud.git
-cd zwift-segment-hud
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-python scripts/make_demo.py
-python scripts/hud.py --config examples/demo/config.json \
+git clone https://github.com/Just-blue/data-dashboard-skills.git
+cd data-dashboard-skills
+python3 scripts/install_skill.py --list
+python3 scripts/install_skill.py zwift-segment-hud
+```
+
+默认安装到`${CODEX_HOME:-$HOME/.codex}/skills/<技能名>`；可用`--destination /目标/skills目录`指定位置。只复制选中的仪表盘，排除生成文件；已有同名目录时停止，不覆盖个人定制。安装器不会安装依赖或更改账号认证。
+
+骑行HUD需要Python3.10+、FFmpeg及ffprobe。macOS可运行`brew install ffmpeg`，Ubuntu可运行`sudo apt-get install ffmpeg`。Python依赖：
+
+```sh
+python3 -m pip install -r skills/zwift-segment-hud/requirements.txt
+```
+
+如系统Python要求隔离环境，请先创建虚拟环境。然后在新对话中使用：
+
+> 使用 $zwift-segment-hud，根据这个活动赛段生成4K60透明仪表盘：赛段成绩链接。
+
+Strava链接不是渲染脚本的直接输入，活动获取、授权和赛段匹配仍需代理结合可用工具完成，具体要求见子目录文档。
+
+## 直接运行
+
+```sh
+cd skills/zwift-segment-hud
+python3 scripts/make_demo.py
+python3 scripts/hud.py --config examples/demo/config.json \
   --output-dir outputs/preview --at 55 --width 1920
-python scripts/hud.py --config examples/demo/config.json \
-  --output-dir outputs/sample --mode video --begin 39 --duration 3
 ```
 
-演示无需登录任何平台。短片输出在 `outputs/sample/hud-alpha.mov`，放到原视频上方轨道并按Alpha合成，无需抠黑底。完整导出时去掉begin/duration参数并指定新的输出目录。
+数据格式、视频导出和限制分别记录在各仪表盘文档中。现有骑行HUD使用1080p布局放大至4K，动效按60fps生成。
 
-## 作为全局Skill安装
+## 仓库结构
 
-仅在目标目录不存在时执行：
-
-```sh
-git clone https://github.com/Just-blue/zwift-segment-hud.git \
-  "${CODEX_HOME:-$HOME/.codex}/skills/zwift-segment-hud"
+```text
+skills/
+  zwift-segment-hud/
+    SKILL.md
+    scripts/
+    assets/
+    references/
+    tests/
+    requirements.txt
+scripts/install_skill.py
+tests/
 ```
 
-然后安装上述Python依赖及FFmpeg。在新对话中使用：
+根目录负责集合索引和安装，不是一个单独的Skill。每个仪表盘独立管理依赖、字体许可和测试。
 
-> 使用 $zwift-segment-hud，根据这个活动中的赛段生成透明4K60仪表盘：赛段成绩链接。
+## 从旧版迁移
 
-已有同名Skill时先检查本地修改，不要覆盖个人定制。
+原先仓库根目录的骑行脚本已移到`skills/zwift-segment-hud/`。旧命令从该目录执行即可；原根目录的requirements.txt也已移入。已独立安装的本地Skill仍可使用。更新前先检查并备份本地修改，再替换对应技能目录，不要把整个集合装成一个Skill。
 
-## 真实活动需要什么
+新增仪表盘按[贡献指南](CONTRIBUTING.md)添加。演示应使用虚构数据，个人运动记录、凭据和视频输出不进入Git。
 
-需要已确认边界的赛段CSV，以及名字、活动当日体重、FTP和数据来源配置。CSV格式见[数据说明](references/data.md)。数据时间轴从0开始，完整1Hz采样，包含终点，保留停止时间。
-
-Strava链接不是脚本直接输入：登录、下载、FIT转换和跨平台活动匹配尚未内置。Skill可以由代理结合已授权工具组织这些步骤，不能保证只有一个链接就无人干预完成。活动中的某次赛段成绩链接能够确定尝试；普通赛段链接通常还需确定是哪次活动。
-
-当前不支持自动填补传感器缺失、不规则采样或非整数秒赛段时长。不能把缺失功率/心率当0。PR/KOM对比尚未实现。分段为自定义展示段，不是Strava官方子赛段。原视频对时需要单独校准。
-
-中断后用相同命令续渲染；输入或代码变化会拒绝复用旧块。无损透明视频体积较大，需同时容纳中间块和最终文件。每次导出附verification.json，检查规格、透明和拼接点，并仍需目视抽查。
-
-代码与文档使用[MIT许可证](LICENSE)；Tektur字体单独适用[OFL1.1](assets/OFL.txt)。
+代码与文档适用[MIT](LICENSE)，字体等第三方素材按各仪表盘中的声明分别授权，详见[素材说明索引](THIRD_PARTY_NOTICES.md)。
